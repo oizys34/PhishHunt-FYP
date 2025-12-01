@@ -4,9 +4,7 @@ client/node_modules/
 server/node_modules/
 
 # Environment variables (IMPORTANT - contains sensitive data)
-.env
 server/.env
-client/.env
 
 # Firebase Admin SDK Keys (IMPORTANT - contains private keys)
 *-firebase-adminsdk-*.json
