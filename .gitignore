@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment variables (IMPORTANT - contains sensitive data)
+.env
+server/.env
+client/.env
+
+# Firebase Admin SDK Keys (IMPORTANT - contains private keys)
+*-firebase-adminsdk-*.json
+*.session.sql
+
+# Production builds
+client/build/
+client/dist/
+
+# Testing
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE / Editor
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Firebase
+.firebase/
+.firebaserc
+firebase-debug.log
+firestore-debug.log
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Optional - Lock files (uncomment if you want to ignore them)
+# package-lock.json
+# yarn.lock
