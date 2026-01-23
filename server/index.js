@@ -24,14 +24,18 @@ app.use(express.urlencoded({ extended: true }));
 
 // Database connection
 const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'My5QLph15h@hunt',
-  database: process.env.DB_NAME || 'phishhunt_db',
+  host: process.env.DB_HOST,
+  port: 4000,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  ssl: {}, // always TLS
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
 };
+
+
 
 const pool = mysql.createPool(dbConfig);
 
