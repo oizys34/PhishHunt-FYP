@@ -1,7 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const mysql = require('mysql2/promise');
 const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
 const path = require('path');
@@ -12,18 +11,7 @@ const router = express.Router();
 dotenv.config({ path: path.join(__dirname, '../.env') });
 dotenv.config(); // Also try default location
 
-// Database connection
-const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'phishhunt_db',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-};
-
-const pool = mysql.createPool(dbConfig);
+const pool = require("../db");
 
 // Function to get email transporter (created lazily to ensure env vars are loaded)
 function getEmailTransporter() {

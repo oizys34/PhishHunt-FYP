@@ -1,19 +1,7 @@
 const express = require('express');
-const mysql = require('mysql2/promise');
 const router = express.Router();
 
-// Database connection
-const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'My5QLph15h@hunt',
-  database: process.env.DB_NAME || 'phishhunt_db',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-};
-
-const pool = mysql.createPool(dbConfig);
+const pool = require("../db");  // ✅ from routes folder, go up 1 level to server/db.js
 
 // Start a new playthrough
 router.post('/start', async (req, res) => {
