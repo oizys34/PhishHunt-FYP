@@ -80,33 +80,57 @@ CREATE TABLE email_scenarios (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- SMS phishing scenarios (30 scenarios)
 CREATE TABLE IF NOT EXISTS sms_scenarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    
+    -- ========== BASIC INFO ==========
     title VARCHAR(200) NOT NULL,
-    sender_number VARCHAR(20) NOT NULL,
-    message TEXT NOT NULL,
+    sender_number VARCHAR(50) NOT NULL,          
+    message_content TEXT NOT NULL,               
+    
+    -- ========== CLASSIFICATION ==========
     is_phishing BOOLEAN NOT NULL,
-    difficulty_level ENUM('easy', 'medium', 'hard') DEFAULT 'medium',
-    red_flags TEXT, -- JSON string of red flags to look for
-    explanation TEXT,
-    image_url VARCHAR(500),
+    
+    -- ========== INTERACTIVE ELEMENTS ==========
+    links JSON,                                  
+    
+    -- ========== EDUCATIONAL CONTENT ==========
+    indicators JSON NOT NULL,                    
+    overall_explanation TEXT,
+    learning_points TEXT,
+    
+    -- ========== METADATA ==========
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Wi-Fi phishing scenarios (15 scenarios)
 CREATE TABLE IF NOT EXISTS wifi_scenarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    
+    -- ========== BASIC INFO ==========
     title VARCHAR(200) NOT NULL,
-    network_name VARCHAR(100) NOT NULL,
-    security_type VARCHAR(50) NOT NULL,
-    signal_strength INT NOT NULL,
-    is_phishing BOOLEAN NOT NULL,
-    difficulty_level ENUM('easy', 'medium', 'hard') DEFAULT 'medium',
-    red_flags TEXT, -- JSON string of red flags to look for
-    explanation TEXT,
-    image_url VARCHAR(500),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    network_name VARCHAR(100) NOT NULL,              -- SSID (e.g., "Starbucks_Free_WiFi")
+    
+    -- ========== NETWORK DETAILS ==========
+    security_type VARCHAR(50) NOT NULL,              -- 'Open', 'WEP', 'WPA', 'WPA2', 'WPA3'
+    signal_strength INT NOT NULL,                    -- 0-100 (percentage)
+    
+    -- ========== CONTEXT ==========
+    context_description TEXT NOT NULL,               -- Where/when user encounters this network
+    
+    -- ========== CLASSIFICATION ==========
+    is_phishing BOOLEAN NOT NULL,                    -- TRUE = fake/evil twin, FALSE = legitimate
+    
+    -- ========== EDUCATIONAL CONTENT ==========
+    indicators JSON NOT NULL,                        -- Sequential educational popups
+    overall_explanation TEXT,
+    learning_points TEXT,
+    
+    -- ========== METADATA ==========
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- ========== INDEXES ==========
+    INDEX idx_phishing (is_phishing),
+    INDEX idx_created (created_at)
 );
 
 -- Playthroughs - Keep ALL games (completed AND incomplete)
@@ -166,14 +190,17 @@ CREATE TABLE IF NOT EXISTS user_progress (
     INDEX idx_user_progress (user_id, scenario_type)
 );
 
--- Educational tips and articles
-CREATE TABLE IF NOT EXISTS educational_content (
+-- Password reset codes
+CREATE TABLE IF NOT EXISTS password_reset_codes (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(200) NOT NULL,
-    content TEXT NOT NULL,
-    category ENUM('email', 'sms', 'wifi', 'general') NOT NULL,
-    difficulty_level ENUM('beginner', 'intermediate', 'advanced') DEFAULT 'beginner',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    email VARCHAR(100) NOT NULL,
+    code VARCHAR(6) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    INDEX idx_email_code (email, code),
+    INDEX idx_expires (expires_at)
 );
 
 

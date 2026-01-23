@@ -160,41 +160,41 @@ app.get('/api/scenarios/wifi', async (req, res) => {
   }
 });
 
-// Normal mode endpoint: 12 email, 6 SMS, 2 WiFi
+// Normal mode endpoint: 4 email, 3 SMS, 3 WiFi
 app.get('/api/scenarios/normal', async (req, res) => {
   try {
     const excludeEmail = req.query.excludeEmail ? JSON.parse(req.query.excludeEmail) : [];
     const excludeSMS = req.query.excludeSMS ? JSON.parse(req.query.excludeSMS) : [];
     const excludeWiFi = req.query.excludeWiFi ? JSON.parse(req.query.excludeWiFi) : [];
     
-    // Fetch 12 email scenarios
+    // Fetch 4 email scenarios
     let emailQuery = 'SELECT *, "email" as type FROM email_scenarios WHERE 1=1';
     const emailParams = [];
     if (excludeEmail.length > 0) {
       emailQuery += ' AND id NOT IN (' + excludeEmail.map(() => '?').join(',') + ')';
       emailParams.push(...excludeEmail);
     }
-    emailQuery += ' ORDER BY RAND() LIMIT 12';
+    emailQuery += ' ORDER BY RAND() LIMIT 4';
     const [emailRows] = await pool.execute(emailQuery, emailParams);
     
-    // Fetch 6 SMS scenarios
+    // Fetch 3 SMS scenarios
     let smsQuery = 'SELECT *, "sms" as type FROM sms_scenarios WHERE 1=1';
     const smsParams = [];
     if (excludeSMS.length > 0) {
       smsQuery += ' AND id NOT IN (' + excludeSMS.map(() => '?').join(',') + ')';
       smsParams.push(...excludeSMS);
     }
-    smsQuery += ' ORDER BY RAND() LIMIT 6';
+    smsQuery += ' ORDER BY RAND() LIMIT 3';
     const [smsRows] = await pool.execute(smsQuery, smsParams);
     
-    // Fetch 2 WiFi scenarios
+    // Fetch 3 WiFi scenarios
     let wifiQuery = 'SELECT *, "wifi" as type FROM wifi_scenarios WHERE 1=1';
     const wifiParams = [];
     if (excludeWiFi.length > 0) {
       wifiQuery += ' AND id NOT IN (' + excludeWiFi.map(() => '?').join(',') + ')';
       wifiParams.push(...excludeWiFi);
     }
-    wifiQuery += ' ORDER BY RAND() LIMIT 2';
+    wifiQuery += ' ORDER BY RAND() LIMIT 3';
     const [wifiRows] = await pool.execute(wifiQuery, wifiParams);
     
     // Combine and shuffle

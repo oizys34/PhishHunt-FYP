@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Shield, Home, Gamepad2, BookOpen, LogOut, User } from 'lucide-react';
+import { Home, Gamepad2, BookOpen, LogOut, User } from 'lucide-react';
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -46,7 +46,11 @@ const Header: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <Shield className="h-8 w-8 text-primary-600" />
+            <img 
+              src="https://firebasestorage.googleapis.com/v0/b/phishhunt-b2cbd.firebasestorage.app/o/Phishhunt%20Logo%2FPhishHunt.png?alt=media&token=09711e0a-426c-4b4f-aca2-c1d5ccb757f4" 
+              alt="PhishHunt Logo" 
+              className="h-8 w-8 object-contain"
+            />
             <span className="text-xl font-bold text-gray-900">PhishHunt</span>
           </Link>
 

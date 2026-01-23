@@ -395,6 +395,194 @@ router.get('/last-completed/:userId', async (req, res) => {
   }
 });
 
+// Get last 3 completed playthroughs (classic or mixed mode only) with optional filter
+// Returns: oldest playthrough + 2 most recent playthroughs
+router.get('/recent-completed/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { mode } = req.query; // Optional: 'classic' or 'mixed'
+    
+    // Base conditions for completed playthroughs
+    let baseConditions = `
+      WHERE user_id = ? 
+        AND session_type IN ('classic', 'mixed')
+        AND is_completed = TRUE
+        AND completed_at IS NOT NULL
+        AND total_scenarios > 0
+        AND total_correct >= 0
+        AND total_incorrect >= 0
+    `;
+    
+    const baseParams = [userId];
+    
+    // Apply mode filter if provided
+    if (mode && (mode === 'classic' || mode === 'mixed')) {
+      baseConditions += ' AND session_type = ?';
+      baseParams.push(mode);
+    }
+    
+    // Get the oldest (first) completed playthrough - respect mode filter
+    const oldestQuery = `
+      SELECT 
+        id,
+        session_type,
+        started_at,
+        completed_at,
+        total_scenarios,
+        total_correct,
+        total_incorrect,
+        accuracy,
+        total_time_seconds,
+        average_response_time,
+        is_completed
+      FROM playthroughs 
+      ${baseConditions}
+      ORDER BY completed_at ASC LIMIT 1
+    `;
+    const [oldestPlaythroughs] = await pool.execute(oldestQuery, baseParams);
+    
+    // Get the 2 most recent completed playthroughs - same filter as oldest
+    const recentQuery = `
+      SELECT 
+        id,
+        session_type,
+        started_at,
+        completed_at,
+        total_scenarios,
+        total_correct,
+        total_incorrect,
+        accuracy,
+        total_time_seconds,
+        average_response_time,
+        is_completed
+      FROM playthroughs 
+      ${baseConditions}
+      ORDER BY completed_at DESC LIMIT 2
+    `;
+    const [recentPlaythroughs] = await pool.execute(recentQuery, baseParams);
+    
+    // Combine: oldest + 2 most recent (avoid duplicates if oldest is one of the recent ones)
+    const allPlaythroughs = [];
+    const seenIds = new Set();
+    
+    // Add oldest first (if exists)
+    if (oldestPlaythroughs.length > 0) {
+      allPlaythroughs.push(oldestPlaythroughs[0]);
+      seenIds.add(oldestPlaythroughs[0].id);
+    }
+    
+    // Add recent ones (excluding the oldest if it's already included)
+    for (const playthrough of recentPlaythroughs) {
+      if (!seenIds.has(playthrough.id)) {
+        allPlaythroughs.push(playthrough);
+        seenIds.add(playthrough.id);
+      }
+    }
+    
+    // Sort by completed_at to ensure: oldest, middle, newest
+    allPlaythroughs.sort((a, b) => new Date(a.completed_at).getTime() - new Date(b.completed_at).getTime());
+    
+    // Take only the first 3 (oldest, and up to 2 more recent)
+    const finalPlaythroughs = allPlaythroughs.slice(0, 3);
+    
+    if (finalPlaythroughs.length === 0) {
+      return res.json({ playthroughs: [] });
+    }
+    
+    // Get responses for each playthrough
+    const playthroughsWithResponses = await Promise.all(
+      finalPlaythroughs.map(async (playthrough) => {
+        const [responses] = await pool.execute(
+          'SELECT scenario_type, is_correct FROM scenario_responses WHERE playthrough_id = ?',
+          [playthrough.id]
+        );
+        return {
+          ...playthrough,
+          responses
+        };
+      })
+    );
+    
+    res.json({
+      playthroughs: playthroughsWithResponses
+    });
+  } catch (error) {
+    console.error('Get recent completed playthroughs error:', error);
+    res.status(500).json({ error: 'Failed to fetch recent completed playthroughs' });
+  }
+});
+
+// Get total correct/incorrect from user_progress aggregated across all scenario types
+router.get('/progress-totals/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const [progress] = await pool.execute(`
+      SELECT 
+        COALESCE(SUM(correct_answers), 0) as total_correct,
+        COALESCE(SUM(incorrect_answers), 0) as total_incorrect
+      FROM user_progress 
+      WHERE user_id = ?
+    `, [userId]);
+    
+    if (progress.length === 0) {
+      return res.json({
+        total_correct: 0,
+        total_incorrect: 0
+      });
+    }
+    
+    res.json({
+      total_correct: Number(progress[0].total_correct) || 0,
+      total_incorrect: Number(progress[0].total_incorrect) || 0
+    });
+  } catch (error) {
+    console.error('Get progress totals error:', error);
+    res.status(500).json({ error: 'Failed to fetch progress totals' });
+  }
+});
+
+// Get progress by scenario type for a user
+router.get('/progress-by-type/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const [progress] = await pool.execute(`
+      SELECT 
+        scenario_type,
+        COALESCE(correct_answers, 0) as correct_answers,
+        COALESCE(incorrect_answers, 0) as incorrect_answers
+      FROM user_progress 
+      WHERE user_id = ?
+      ORDER BY scenario_type
+    `, [userId]);
+    
+    // Initialize with zeros
+    const result = {
+      email: { correct: 0, incorrect: 0 },
+      sms: { correct: 0, incorrect: 0 },
+      wifi: { correct: 0, incorrect: 0 }
+    };
+    
+    // Fill in the data from database
+    for (let i = 0; i < progress.length; i++) {
+      const row = progress[i];
+      const type = row.scenario_type;
+      if (type === 'email' || type === 'sms' || type === 'wifi') {
+        result[type] = {
+          correct: Number(row.correct_answers) || 0,
+          incorrect: Number(row.incorrect_answers) || 0
+        };
+      }
+    }
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Get progress by type error:', error);
+    res.status(500).json({ error: 'Failed to fetch progress by type' });
+  }
+});
+
 // Get user statistics
 router.get('/stats/:userId', async (req, res) => {
   try {

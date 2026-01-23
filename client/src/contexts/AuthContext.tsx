@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { User, AuthContextType, RegisterData, GoogleLoginPayload } from '../types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,6 +18,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const initializedRef = useRef(false); // Track if we've already initialized
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   const normalizeUser = useCallback((raw: Partial<User> & { id?: string | number }): User => {
@@ -49,7 +50,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 
   useEffect(() => {
-    // Check for existing session on app load
+    // Check for existing session on app load - only run once on mount
+    if (initializedRef.current) {
+      return; // Already initialized, skip
+    }
+    
+    initializedRef.current = true;
     const savedUser = localStorage.getItem('phishhunt_user');
     if (savedUser) {
       try {
@@ -61,7 +67,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     }
     setIsLoading(false);
-  }, [persistUser]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps - only run once on mount, persistUser is stable
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
@@ -82,7 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const errorBody = await response.json().catch(() => ({}));
         setIsLoading(false);
         const message = typeof errorBody?.error === 'string' ? errorBody.error.toLowerCase() : '';
-        if (message.includes('password')) {
+        if (message.includes('password') || message.includes('incorrect')) {
           throw new Error('INVALID_PASSWORD');
         }
         throw new Error('INVALID_CREDENTIALS');

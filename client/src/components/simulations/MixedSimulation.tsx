@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { ArrowRight, CheckCircle, XCircle, AlertTriangle, Mail, MessageSquare, Wifi, FileText, Paperclip, Link as LinkIcon, Shield, Lock, Clock, Loader2 } from 'lucide-react';
+import { ArrowRight, ArrowLeft, CheckCircle, XCircle, AlertTriangle, Mail, MessageSquare, Wifi, FileText, Paperclip, Link as LinkIcon, Shield, Lock, Clock, Loader2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { EmailScenario, SMSScenario, WiFiScenario, GameResults, EmailLink } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -157,7 +157,7 @@ const MixedSimulation: React.FC<MixedSimulationProps> = ({ onComplete }) => {
       }
       
       if (isNormalMode) {
-        // Classic mode: 12 email, 6 SMS, 2 WiFi
+        // Classic mode: 4 email, 3 SMS, 3 WiFi
         // Only exclude previously used scenarios if this is a replay
         const params = new URLSearchParams();
         if (isReplay) {
@@ -600,6 +600,12 @@ const MixedSimulation: React.FC<MixedSimulationProps> = ({ onComplete }) => {
     }
   };
 
+  const handlePreviousStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
   const completePlaythrough = async () => {
     // Only save if user is logged in (not a guest)
     const savedUser = localStorage.getItem('phishhunt_user');
@@ -1010,7 +1016,7 @@ const MixedSimulation: React.FC<MixedSimulationProps> = ({ onComplete }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-50 to-green-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading scenarios...</p>
@@ -1021,7 +1027,7 @@ const MixedSimulation: React.FC<MixedSimulationProps> = ({ onComplete }) => {
 
   if (!currentData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-50 to-green-100 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-600 mb-4">No scenarios available.</p>
           <button
@@ -1464,7 +1470,7 @@ const MixedSimulation: React.FC<MixedSimulationProps> = ({ onComplete }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-50 to-green-100">
       <ExitConfirmationModal
         isOpen={showModal}
         onConfirm={handleConfirm}
@@ -1652,6 +1658,15 @@ const MixedSimulation: React.FC<MixedSimulationProps> = ({ onComplete }) => {
 
             {/* Navigation */}
             <div className="flex justify-center gap-4">
+              {currentStep > 1 && (
+                <button
+                  onClick={handlePreviousStep}
+                  className="btn-secondary flex items-center px-8 py-3 text-lg"
+                >
+                  <ArrowLeft className="h-5 w-5 mr-2" />
+                  Previous Indicator
+                </button>
+              )}
               {(() => {
                 const allIndicators = (currentData.indicators as any)?.indicators || [];
                 const maxStep = allIndicators.length > 0 

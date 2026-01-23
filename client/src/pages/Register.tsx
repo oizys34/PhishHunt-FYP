@@ -31,6 +31,8 @@ const Register: React.FC = () => {
     }
     if (field === 'email') {
       setEmailConflict(false);
+      // Clear email error from localStorage when user changes email
+      localStorage.removeItem('register_email_error');
     }
 
     setFormValues(prev => ({
@@ -41,6 +43,10 @@ const Register: React.FC = () => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    event.stopPropagation();
+    
+    // Clear previous email error from localStorage when user tries again
+    localStorage.removeItem('register_email_error');
     setError('');
     setEmailConflict(false);
 
@@ -84,13 +90,15 @@ const Register: React.FC = () => {
     } catch (registerError) {
       if (registerError instanceof Error) {
         if (registerError.message === 'EMAIL_EXISTS') {
-          setEmailConflict(true);
-          setError('This email is already registered. Please sign in instead.');
+          // Store error in localStorage and reload page (like login page)
+          const displayError = 'Please choose an available email.';
+          localStorage.setItem('register_email_error', displayError);
+          window.location.reload();
           return;
         }
         if (registerError.message === 'USERNAME_EXISTS') {
           setUsernameStatus('taken');
-          setError('Username already taken. Please choose a different one.');
+          setError('Please choose an available username.');
           return;
         }
       }
@@ -118,6 +126,16 @@ const Register: React.FC = () => {
       }));
     }
   }, [location.state]);
+
+  // Check for email error on component mount (from previous failed registration)
+  useEffect(() => {
+    const savedEmailError = localStorage.getItem('register_email_error');
+    if (savedEmailError) {
+      setEmailConflict(true);
+      setError(savedEmailError);
+      // Don't clear it automatically - let user see it and it will be cleared on next registration attempt
+    }
+  }, []); // Run only once on mount
 
   useEffect(() => {
     const controller = new AbortController();
@@ -306,16 +324,9 @@ const Register: React.FC = () => {
                 />
               </div>
               {emailConflict && (
-                <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
-                  This email is already registered.{' '}
-                  <button
-                    type="button"
-                    onClick={() => navigate('/login', { state: { prefillEmail: formValues.email } })}
-                    className="underline font-medium"
-                  >
-                    Sign in instead
-                  </button>
-                </div>
+                <p className="mt-1 text-xs text-red-600">
+                  Email is already taken. Please choose another.
+                </p>
               )}
             </div>
 

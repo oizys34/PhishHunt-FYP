@@ -88,7 +88,7 @@ const GameMode = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-50 to-green-100 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
@@ -109,12 +109,12 @@ const GameMode = () => {
             </div>
             <h3 className="text-3xl font-bold mb-4">Classic Mode</h3>
             <p className="text-xl text-purple-100 mb-6 max-w-2xl mx-auto">
-              20 questions of mixed 3 types of attack simulation: Email, SMS, and WiFi.
+              10 questions of mixed 3 types of attack simulation: Email, SMS, and WiFi.
             </p>
             <div className="space-y-2 mb-8 text-sm text-purple-200">
               <div className="flex items-center justify-center">
                 <Target className="h-4 w-4 mr-2" />
-                <span>20 scenarios (12 Email, 6 SMS, 2 WiFi)</span>
+                <span>10 scenarios (4 Email, 3 SMS, 3 WiFi)</span>
               </div>
               <div className="flex items-center justify-center">
                 <Clock className="h-4 w-4 mr-2" />

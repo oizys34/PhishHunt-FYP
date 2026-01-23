@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { User, Mail, Play, BookOpen, TrendingUp, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { User, Mail, Play, BookOpen, TrendingUp, AlertTriangle, CheckCircle, XCircle, BarChart3, Gamepad2, Layers, LogIn } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -127,15 +127,18 @@ const Dashboard: React.FC = () => {
   const helpfulArticles = [
     {
       title: "Cybersecurity & Infrastructure Security Agency (CISA) - 'Avoiding Social Engineering and Phishing Attacks'",
-      description: "Be cautious with unsolicited requests, verify links, use strong passwords, multi-factor authentication, install security tools, and report incidents."
+      description: "Be cautious with unsolicited requests, verify links, use strong passwords, multi-factor authentication, install security tools, and report incidents.",
+      url: "https://www.cisa.gov/news-events/news/avoiding-social-engineering-and-phishing-attacks"
     },
     {
       title: "Admin By Request - 'Don't Get Hooked: 10 Social Engineering Indicators'",
-      description: "Learn to spot tell-tale signs like urgent requests, fake authority, odd attachments/links, unexpected communications, and emotional triggers."
+      description: "Learn to spot tell-tale signs like urgent requests, fake authority, odd attachments/links, unexpected communications, and emotional triggers.",
+      url: "https://www.adminbyrequest.com/en/blogs/dont-get-hooked-10-social-engineering-indicators"
     },
     {
       title: "Crowdstrike - How to Spot a Phishing Email",
-      description: "Identify key signs in phishing emails such as suspicious links, fake domains, and urgent messages, and stay alert and report."
+      description: "Identify key signs in phishing emails such as suspicious links, fake domains, and urgent messages, and stay alert and report.",
+      url: "https://www.crowdstrike.com/en-us/cybersecurity-101/social-engineering/how-to-spot-a-phishing-email/"
     }
   ];
 
@@ -223,10 +226,22 @@ const Dashboard: React.FC = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
             ) : !lastPlaythrough ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500">No completed playthroughs yet.</p>
-                <p className="text-sm text-gray-400 mt-2">Complete a classic or mixed mode game to see your stats here.</p>
-              </div>
+              user?.isGuest ? (
+                <div className="text-center py-8">
+                  <div className="mb-4 flex justify-center">
+                    <div className="rounded-full bg-blue-100 p-4">
+                      <LogIn className="h-8 w-8 text-blue-600" />
+                    </div>
+                  </div>
+                  <p className="text-gray-700 font-medium mb-2">Create an account to track your progress</p>
+                  <p className="text-sm text-gray-500">Sign in with Google or create an account to view your playthrough history and track your improvement over time.</p>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-gray-500">No completed playthroughs yet.</p>
+                  <p className="text-sm text-gray-400 mt-2">Complete a classic or mixed mode game to see your stats here.</p>
+                </div>
+              )
             ) : (
               <>
                 {/* Overall Performance Pie Chart */}
@@ -339,6 +354,19 @@ const Dashboard: React.FC = () => {
                 </div>
               </>
             )}
+            
+            {/* Link to Playthrough Comparison - Only show for non-guest users or if they have playthroughs */}
+            {(!user?.isGuest || lastPlaythrough) && (
+              <div className="mt-6">
+                <Link 
+                  to="/playthrough-comparison" 
+                  className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-sm"
+                >
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  View Playthrough Comparison
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Center Panel - Welcome and Input */}
@@ -408,9 +436,14 @@ const Dashboard: React.FC = () => {
             <div className="space-y-4">
               {helpfulArticles.map((article, index) => (
                 <div key={index} className="border-b border-gray-200 pb-4 last:border-b-0">
-                  <h3 className="text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer underline mb-2">
+                  <a 
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer underline mb-2 block"
+                  >
                     {article.title}
-                  </h3>
+                  </a>
                   <p className="text-xs text-gray-600 leading-relaxed">
                     {article.description}
                   </p>
@@ -424,7 +457,7 @@ const Dashboard: React.FC = () => {
                 className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-sm"
               >
                 <BookOpen className="h-4 w-4 mr-2" />
-                View All Articles
+                Learn More
               </Link>
             </div>
           </div>
@@ -442,10 +475,10 @@ const Dashboard: React.FC = () => {
 
           <div className="bg-white rounded-xl shadow-lg p-4 text-center">
             <div className="flex items-center justify-center mb-2">
-              <TrendingUp className="h-6 w-6 text-blue-500" />
+              <Gamepad2 className="h-6 w-6 text-blue-500" />
             </div>
-            <div className="text-2xl font-bold text-gray-800">80%</div>
-            <div className="text-sm text-gray-600">Average Accuracy</div>
+            <div className="text-2xl font-bold text-gray-800">5</div>
+            <div className="text-sm text-gray-600">Game Mode</div>
           </div>
 
           <div className="bg-white rounded-xl shadow-lg p-4 text-center">
@@ -460,7 +493,7 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center justify-center mb-2">
               <BookOpen className="h-6 w-6 text-purple-500" />
             </div>
-            <div className="text-2xl font-bold text-gray-800">15+</div>
+            <div className="text-2xl font-bold text-gray-800">8</div>
             <div className="text-sm text-gray-600">Learning Resources</div>
           </div>
         </div>

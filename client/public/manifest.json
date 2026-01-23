@@ -3,9 +3,14 @@
   "name": "PhishHunt - Cybersecurity Training Game",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "https://firebasestorage.googleapis.com/v0/b/phishhunt-b2cbd.firebasestorage.app/o/Phishhunt%20Logo%2FPhishHunt.png?alt=media&token=09711e0a-426c-4b4f-aca2-c1d5ccb757f4",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://firebasestorage.googleapis.com/v0/b/phishhunt-b2cbd.firebasestorage.app/o/Phishhunt%20Logo%2FPhishHunt.png?alt=media&token=09711e0a-426c-4b4f-aca2-c1d5ccb757f4",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ],
   "start_url": ".",

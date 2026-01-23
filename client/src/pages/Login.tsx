@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Eye, EyeOff, Mail, Lock, User, Shield } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
 
@@ -21,51 +21,88 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation() as { state?: { prefillEmail?: string } };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    e.stopPropagation();
+    
+    // Clear previous error from localStorage when user tries again
+    localStorage.removeItem('login_error');
     setError('');
+    setShowCreateAccountPrompt(false);
     
     if (!email || !password) {
       setError('Please fill in all fields');
       return;
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address (e.g., example@email.com)');
+      return;
+    }
+
     try {
       const success = await login(email, password);
       if (success) {
+        // Clear error on successful login
+        setError('');
+        localStorage.removeItem('login_error');
         setShowCreateAccountPrompt(false);
         navigate('/dashboard', { replace: true });
       } else {
         setShowCreateAccountPrompt(false);
-        setError('Incorrect email or password. Please try again.');
+        setError('Unable to sign in. Please try again.');
       }
-    } catch (loginError) {
+    } catch (loginError: any) {
+      // Extract error message
+      let errorMessage = '';
       if (loginError instanceof Error) {
-        if (loginError.message === 'USER_NOT_FOUND') {
-          setError('We couldn’t find an account with that email.');
-          setShowCreateAccountPrompt(true);
-          return;
-        }
-        if (loginError.message === 'INVALID_PASSWORD') {
-          setShowCreateAccountPrompt(false);
-          setError('Incorrect email or password. Please try again.');
-          return;
-        }
-        if (loginError.message === 'INVALID_CREDENTIALS') {
-          setShowCreateAccountPrompt(false);
-          setError('Incorrect email or password. Please try again.');
-          return;
-        }
+        errorMessage = loginError.message;
+      } else if (typeof loginError === 'string') {
+        errorMessage = loginError;
+      } else if (loginError?.message) {
+        errorMessage = loginError.message;
+      } else {
+        errorMessage = String(loginError);
       }
-      setError('Unable to sign in right now. Please try again.');
+      
+      // Use a simple generic error message
+      const displayError = 'Invalid email or password. Please try again.';
+      
+      // Store error in localStorage and reload page
+      localStorage.setItem('login_error', displayError);
+      window.location.reload();
     }
   };
+
+  // Check for error on component mount only
+  useEffect(() => {
+    // Check for error message in localStorage (from previous failed login)
+    const savedError = localStorage.getItem('login_error');
+    if (savedError) {
+      setError(savedError);
+      // Don't clear it automatically - let user see it and it will be cleared on next login attempt
+      // Only clear if user successfully logs in or manually clears it
+    }
+  }, []); // Run only once on mount
 
   useEffect(() => {
     if (location.state?.prefillEmail) {
       setEmail(location.state.prefillEmail);
     }
   }, [location.state]);
+
+
+  // Debug: Log error changes to see if it's being set/cleared
+  useEffect(() => {
+    if (error) {
+      console.log('✅ ERROR STATE IS SET TO:', error);
+    } else {
+      console.log('❌ ERROR STATE IS EMPTY');
+    }
+  }, [error]);
+
 
   const handleGuestLogin = async () => {
     setError('');
@@ -123,16 +160,12 @@ const Login: React.FC = () => {
         {/* Logo Section */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="relative">
-              <div className="w-16 h-16 bg-blue-200 rounded-full flex items-center justify-center">
-                <Shield className="h-8 w-8 text-blue-600" />
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-pink-200 rounded-full flex items-center justify-center">
-                <div className="w-3 h-3 bg-pink-400 rounded-full"></div>
-              </div>
-            </div>
+            <img 
+              src="https://firebasestorage.googleapis.com/v0/b/phishhunt-b2cbd.firebasestorage.app/o/Phishhunt%20Logo%2FPhishHunt.png?alt=media&token=09711e0a-426c-4b4f-aca2-c1d5ccb757f4" 
+              alt="PhishHunt Logo" 
+              className="h-32 w-32 object-contain"
+            />
           </div>
-          <h1 className="text-3xl font-bold text-teal-800 italic mb-2">PhishHunt</h1>
           <h2 className="text-2xl font-semibold text-gray-800 mb-3">Welcome to PhishHunt</h2>
           <p className="text-gray-600 text-sm leading-relaxed">
             A social engineering threat detection simulation game to test how easily you can fall victim to social engineering attacks.
@@ -141,11 +174,23 @@ const Login: React.FC = () => {
 
         {/* Login Form */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-              {error}
-            </div>
-          )}
+          {/* Error Display - Always render container to test */}
+          <div style={{ minHeight: error ? 'auto' : '0px' }}>
+            {error ? (
+              <div 
+                className="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg text-red-800 text-base font-medium" 
+                role="alert"
+                style={{ display: 'block', visibility: 'visible' }}
+              >
+                <div className="flex items-start">
+                  <svg className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  <span>{error}</span>
+                </div>
+              </div>
+            ) : null}
+          </div>
           {showCreateAccountPrompt && (
             <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-sm flex flex-col space-y-2">
               <span>We couldn’t find an account with that email.</span>
@@ -170,7 +215,16 @@ const Login: React.FC = () => {
               </div>
             </div>
           )}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form 
+            onSubmit={handleSubmit} 
+            className="space-y-6" 
+            noValidate
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+                e.preventDefault();
+              }
+            }}
+          >
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">

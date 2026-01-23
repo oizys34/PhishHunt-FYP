@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { ArrowRight, CheckCircle, XCircle, AlertTriangle, FileText, Link as LinkIcon, Paperclip, Clock, Loader2 } from 'lucide-react';
+import { ArrowRight, ArrowLeft, CheckCircle, XCircle, AlertTriangle, FileText, Link as LinkIcon, Paperclip, Clock, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { EmailScenario, GameResults, EmailLink, EmailAttachment, EmailIndicator } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -688,6 +688,12 @@ const EmailSimulation: React.FC<EmailSimulationProps> = ({ onComplete }) => {
     }
   };
 
+  const handlePreviousStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
   const handleNext = async () => {
     const currentData = scenarios[currentScenario];
     
@@ -827,7 +833,7 @@ const EmailSimulation: React.FC<EmailSimulationProps> = ({ onComplete }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-50 to-green-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading scenarios...</p>
@@ -886,7 +892,7 @@ const EmailSimulation: React.FC<EmailSimulationProps> = ({ onComplete }) => {
     : 1;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-50 to-green-100">
       <ExitConfirmationModal
         isOpen={showModal}
         onConfirm={handleConfirm}
@@ -1129,6 +1135,15 @@ const EmailSimulation: React.FC<EmailSimulationProps> = ({ onComplete }) => {
 
             {/* Navigation */}
             <div className="flex justify-center gap-4">
+              {currentStep > 1 && (
+                <button
+                  onClick={handlePreviousStep}
+                  className="btn-secondary flex items-center px-8 py-3 text-lg"
+                >
+                  <ArrowLeft className="h-5 w-5 mr-2" />
+                  Previous Indicator
+                </button>
+              )}
               {currentStep < maxStep ? (
                 <button
                   onClick={handleNextStep}

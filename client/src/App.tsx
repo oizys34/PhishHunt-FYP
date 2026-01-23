@@ -14,11 +14,17 @@ import MixedSimulation from './components/simulations/MixedSimulation';
 import Results from './pages/Results';
 import Learn from './pages/Learn';
 import Register from './pages/Register';
+import PlaythroughComparison from './pages/PlaythroughComparison';
+import ForgotPassword from './pages/ForgotPassword';
 
 function AppContent() {
   const [gameResults, setGameResults] = useState<GameResults | null>(null);
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
+  
+  // Allow guest users to access login/register pages
+  const isGuest = user?.isGuest ?? false;
+  const shouldRedirectToDashboard = isAuthenticated && !isGuest;
 
   // Routes that should show the header (exclude simulation routes during gameplay)
   const isSimulationRoute = location.pathname.includes('/simulation/');
@@ -26,13 +32,14 @@ function AppContent() {
     location.pathname.includes('/game-mode') || 
     location.pathname.includes('/learn') || 
     location.pathname.includes('/results') || 
+    location.pathname.includes('/playthrough-comparison') ||
     location.pathname === '/home' || 
     location.pathname === '/dashboard') && !isSimulationRoute;
 
   const showStandaloneSpinner = isLoading && !shouldShowHeader;
 
   return (
-    <div className="min-h-screen bg-gray-50 relative">
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-50 to-green-100 relative">
       {/* Show Header for non-simulation routes */}
       {shouldShowHeader && <Header />}
       
@@ -49,7 +56,7 @@ function AppContent() {
             <Route path="/" element={isAuthenticated ? <Dashboard /> : <Login />} />
             <Route
               path="/login"
-              element={isAuthenticated ? <Dashboard /> : <Login />}
+              element={shouldRedirectToDashboard ? <Dashboard /> : <Login />}
             />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/home" element={<Home />} />
@@ -77,6 +84,8 @@ function AppContent() {
             <Route path="/results" element={<Results results={gameResults} />} />
             <Route path="/learn" element={<Learn />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/playthrough-comparison" element={<PlaythroughComparison />} />
           </Routes>
         )}
       </main>
