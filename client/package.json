@@ -6,7 +6,7 @@
     "@types/node": "^16.18.68",
     "@types/react": "^18.2.42",
     "@types/react-dom": "^18.2.17",
-    "axios": "^1.6.2",
+    "axios": "^1.13.5",
     "firebase": "^12.5.0",
     "framer-motion": "^10.16.16",
     "lucide-react": "^0.294.0",
